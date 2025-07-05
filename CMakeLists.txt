@@ -1,7 +1,7 @@
 ﻿# CMakeList.txt : CMake project for simpleMazeGame, include source and define
 # project specific logic here.
 #
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.18)
 
 # Enable Hot Reload for MSVC compilers if supported.
 if (POLICY CMP0141)
@@ -10,9 +10,28 @@ if (POLICY CMP0141)
 endif()
 
 project ("simpleMazeGame")
+include(FetchContent)
+
+FetchContent_Declare(
+	SDL3
+	GIT_REPOSITORY https://github.com/libsdl-org/SDL
+	GIT_TAG release-3.2.x
+)
+
+FetchContent_MakeAvailable(SDL3)
 
 # Add source to this project's executable.
-add_executable (simpleMazeGame "src/main.cpp" )
+add_executable (simpleMazeGame "src/main.cpp"  "src/include/common.h"  "src/include/maze.h" "src/maze.cpp" "src/include/maze_visuals.h")
+
+target_link_libraries(simpleMazeGame PRIVATE SDL3::SDL3)
+
+if(WIN32)
+    add_custom_command(TARGET simpleMazeGame POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_FILE:SDL3::SDL3>  
+            $<TARGET_FILE_DIR:simpleMazeGame>  
+    )
+endif()
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET simpleMazeGame PROPERTY CXX_STANDARD 20)
