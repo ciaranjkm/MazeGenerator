@@ -1,6 +1,7 @@
 #include <SDL3/SDL.h>
 #include "maze.h"
 
+//clear the background of the screen to a specific colour
 void clear_background(SDL_Renderer* renderer, SDL_Color color) {
 	//set the draw colour to specified colour
 	SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
@@ -8,10 +9,11 @@ void clear_background(SDL_Renderer* renderer, SDL_Color color) {
 	SDL_RenderClear(renderer);
 }
 
+//draw a individual maze cell
 void draw_maze_cell(SDL_Renderer* renderer, maze_cell* maze_cell, const int& maze_width, const int& maze_height) {
 	int cell_width = 600 / maze_width;
 	int cell_height = 600 / maze_height;
-	
+
 	//convert grid coords to screen coords
 	int drawX = maze_cell->x * cell_width;
 	int drawY = maze_cell->y * cell_height;
@@ -47,4 +49,22 @@ void draw_maze_cell(SDL_Renderer* renderer, maze_cell* maze_cell, const int& maz
 	if (maze_cell->left) {
 		SDL_RenderLine(renderer, drawX, drawY, drawX, drawY + cell_height);
 	}
+}
+
+//draw the entire maze 
+void draw_maze(SDL_Renderer* renderer, maze* maze) {
+	//draw the background in off-white 
+	SDL_Color* maze_background_colour = new SDL_Color{ 248, 248, 255, 255 };
+	clear_background(renderer, *maze_background_colour);
+	delete maze_background_colour;
+
+	//draw each cell of the maze
+	int maze_width = maze->get_maze_width();
+	int maze_height = maze->get_maze_height();
+
+	for (int i = 0; i < maze->get_total_maze_size(); i++) {
+		draw_maze_cell(renderer, maze->get_cell(i), maze_width, maze_height);
+	}
+
+	SDL_RenderPresent(renderer);
 }

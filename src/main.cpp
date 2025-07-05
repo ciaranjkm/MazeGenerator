@@ -54,28 +54,31 @@ int main(int argc, char** argv[])
 				{
 				//on key m generate a new maze (testing only, new maze started from cli)
 				case SDLK_M:
+					//create a new maze object
 					m = new maze(10, 10);
+
+					//generate a new empty maze
 					m->generate_new_empty_maze();
 
-					//draw the background in off-white 
-					SDL_Color* maze_background_colour = new SDL_Color{ 248, 248, 255, 255 };
-					clear_background(renderer, *maze_background_colour);
-					delete maze_background_colour;
-					
-					//draw each cell of the maze
-					for (int i = 0; i < m->get_total_maze_size(); i++) {
-						draw_maze_cell(renderer, m->get_cell(i), m->get_maze_width(), m->get_maze_height());
-					}
+					//draw the empty maze on screen 
+					draw_maze(renderer, m);
 
-					//present the renderer to the window to show the maze
-					SDL_RenderPresent(renderer);
+					break;
+
+				//on key s solve the maze
+				case SDLK_S:
+					m->solve_maze_rb();
+
+					draw_maze(renderer, m);
+
+					break;
 				}
 
-				break;
-			}
+				}
+
 		}
 
-		SDL_Delay(1); //limit to rougly 60fps
+		SDL_Delay(1); //limit to let cpu sleep a bit
 	}
 
 	SDL_DestroyRenderer(renderer);

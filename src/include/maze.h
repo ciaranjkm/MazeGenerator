@@ -18,6 +18,9 @@ public:
 	//fills original maze cells with new empty cells the size of the maze width * height
 	void generate_new_empty_maze();
 
+	//solves the maze using reverse backtracking
+	void solve_maze_rb();
+
 	//returns a cell at specific index in the maze
 	maze_cell* get_cell(const int& index);
 
