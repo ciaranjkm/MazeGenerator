@@ -30,6 +30,9 @@ public:
 	void draw_maze(SDL_Renderer* renderer, maze* maze); //draw the entire maze 
 
 private:
+	//MAZE GENERATION FUNCTIONS
+	void destory_maze_walls(const int& direction, maze_cell* selected_cell, maze_cell* target_cell); //destory the wall between two cells
+
 	//GETTERS FOR MAZE ATTRIBUTES
 	maze_cell* get_cell(const int& index); //returns a cell at specific index in the maze
 

@@ -13,7 +13,7 @@ int main(int argc, char** argv[])
 
 	//create sdl window
 	SDL_Window* window = SDL_CreateWindow(
-		"SDL3 Window",
+		"Mystz' Maze Generator",
 		620, 620,
 		0);
 
@@ -52,23 +52,41 @@ int main(int argc, char** argv[])
 				{
 				//on key m generate a new maze (testing only, new maze started from cli)
 				case SDLK_M:
-					//create a new maze object
-					m = new maze(100, 100);
+					if (!(m != nullptr)) {
+						//create a new maze object
+						m = new maze(10, 10);
 
-					//generate a new empty maze
-					m->generate_new_empty_maze();
+						//generate a new empty maze
+						m->generate_new_empty_maze();
 
-					//draw the empty maze on screen 
-					m->draw_maze(renderer, m);
-
+						//draw the empty maze on screen 
+						m->draw_maze(renderer, m);
+					}
+					else {
+						std::cout << "ALREADY HAVE A MAZE. PRESS D TO DELETE CURRENT MAZE\n";
+					}
 					break;
 
 				//on key s solve the maze
 				case SDLK_S:
-					m->solve_maze_rb(renderer);
+					if (m != nullptr) {
+						m->solve_maze_rb(renderer);
+					}
+					else {
+						std::cout << "THERE IS NO MAZE TO SOLVE. GENERATE ONE BY PRESSING M\n";
+					}
+					break;
 
-					m->draw_maze(renderer, m);
-
+				//on key d delete current maze if it exists
+				case SDLK_D:
+					if (m != nullptr) {
+						delete m;
+						m = nullptr;
+						std::cout << "FREED MAZE OBJECT FROM MEMORY. CAN NOW CREATE A NEW MAZE.";
+					}
+					else {
+						std::cout << "CANNOT DELETE MAZE, THERE IS NO MAZE TO DELETE. CREATE ONE BY PRESSING M\n";
+					}
 					break;
 				}
 			}

@@ -37,10 +37,12 @@ void maze::generate_new_empty_maze() {
 	}
 
 	//inform user of success
-    std::cout << "New empty maze generated with width: " << maze_width << " and height: " << maze_height << std::endl;
+    std::cout << "NEW UNGENERATED MAZE CREATED WITH WIDTH: " << maze_width << " AND HEIGHT: " << maze_height << std::endl;
 }
 
-void maze::solve_maze_rb(SDL_Renderer* renderer) {
+void maze::solve_maze_rb(SDL_Renderer* renderer){
+	std::cout << "GENERATING MAZE OF TOTAL SIZE: " << get_total_maze_size() << " USING REVERSE BACKTRACKING ALGORITHM\n";
+	
 	//generate a random index to start
 	srand((unsigned)time(NULL));
 	int random_index = rand() % get_total_maze_size();
@@ -50,90 +52,119 @@ void maze::solve_maze_rb(SDL_Renderer* renderer) {
 	selected_cell->visited = true;
 	visited_cells.push_back(selected_cell); //add the first cell as visited
 
+	//get a byte to store the directions checked already (bitwise or bottom nibble, 1 bit for each dir)
+	unsigned char directions_checked = 0x00;
+
+	//create an accumulator of the total visited cells start at 1 as have a starting cell
+	int visited_cells_count = 1;
+
 	//while we haven't visited all cells
-	while (visited_cells.size() < get_total_maze_size()) {
+	while (visited_cells_count != get_total_maze_size()) {
 		//select a random direction to move
-		srand((unsigned)time(NULL));
 		int random_direction = get_random_int(0, 3); // 0: up, 1: right, 2: down, 3: left
 		maze_cell* target_cell = nullptr;
 
+		//find a cell in the random direction
 		switch (random_direction) {
 			case 0:
 				//check if we can move up?
 				if (selected_cell->y < 1) { 
+					directions_checked |= (1 << random_direction);
 					continue; 
 				}
 
 				//get the target cell above selected cell
 				target_cell = get_cell(selected_cell->cell_id - maze_width);
 
-				//remove the walls between the selected cell and target cell
-				target_cell->bottom = false; //remove bottom of target cell
-				selected_cell->top = false; //remove top of selected cell
-
 				break;
 
 			case 1:
 				//check if we can move right?
 				if (selected_cell->x > maze_width - 2) { 
+					directions_checked |= (1 << random_direction);
 					continue; 
 				} 
 
 				target_cell = get_cell(selected_cell->cell_id + 1);
-
-				target_cell->left = false; 
-				selected_cell->right = false; 
 
 				break;
 
 			case 2: 
 				//check if we can move down?
 				if (selected_cell->y > maze_height - 2) { 
+					directions_checked |= (1 << random_direction);
 					continue; 
 				}
 
 				target_cell = get_cell(selected_cell->cell_id + maze_width);
-
-				target_cell->top = false;
-				selected_cell->bottom = false;
-
 				break;
 
 			case 3: 
 				//check if we can move left?
 				if (selected_cell->x < 1) { 
+					directions_checked |= (1 << random_direction);
 					continue;
 				}
 				target_cell = get_cell(selected_cell->cell_id - 1);
-
-				target_cell->right = false;
-				selected_cell->left = false;
-
 				break;
 
 			default:
 				continue; //invalid dir
 		}
 
+		//did we find a target cell
 		if (target_cell == nullptr) {
 			continue; //no target cell found
 		}
 
-		//check if the target cell has already been visited?
+		//if we have visited the target cell already, set random dir bit of directions tried
 		if (target_cell->visited) {
+			//add the direction to the checked directions
+			directions_checked |= (1 << random_direction);
+
+			//if we have checked all directions, step back in the maze and continue to the next cell
+			if (directions_checked >= 0x0f) {
+				//reset dir checked
+				directions_checked = 0x00;
+				//erase the target cell
+				target_cell = nullptr;
+				
+				//if we have cells that can be back tracked to
+				if (visited_cells.size() > 0) {
+					//go back one cell 
+					selected_cell = visited_cells[visited_cells.size() - 1];
+					//pop that cell from the stack
+					visited_cells.pop_back();
+				}
+			}
+			//continue to the next cell
 			continue;
 		}
 
-		//if the cell has not been visited already all it to the visited cells vector and update the selected cell
+		//mark the cell as visited
+		target_cell->visited = true; 
+		visited_cells.push_back(target_cell); 
 
-		target_cell->visited = true; //mark the cell as visited
-		visited_cells.push_back(target_cell); //add to visited cells
+		//remove walls between cells
+		destory_maze_walls(random_direction, selected_cell, target_cell);
 
-		selected_cell = target_cell; // update the selected cell
+		//update the selected cell to the target cell to move forward in the maze
+		selected_cell = target_cell;
 
+		//reset checked directions
+		directions_checked = 0x00;
+
+		//increment the visited cells count
+		visited_cells_count += 1;
+
+		//draw the step of the maze and wait for a bit to show each step
 		draw_maze(renderer, this);
+		//TODO :: customisable delay between each step
 		SDL_Delay(16);
 	}
+
+	//output when maze has been completed TODO: add time taken to complete maze
+	std::cout << "MAZE COMPLETED IN: " << "\n";
 }
 
 //DRAWING FUNCTIONS (SDL REQUIRED)
@@ -204,6 +235,34 @@ void maze::draw_maze(SDL_Renderer* renderer, maze* maze) {
 }
 
 //PRIVATE FUNCTIONS
+
+//MAZE GENERATION FUNCTIONS
+void maze::destory_maze_walls(const int& direction, maze_cell* selected_cell, maze_cell* target_cell) {
+	switch (direction) {
+	case 0:
+		selected_cell->top = false;
+		target_cell->bottom = false;
+		break;
+
+	case 1: 
+		selected_cell->right = false;
+		target_cell->left = false;
+		break;
+
+	case 2:
+		selected_cell->bottom = false;
+		target_cell->top = false;
+		break;
+
+	case 3:
+		selected_cell->left = false;
+		target_cell->right = false;
+		break;
+
+	default:
+		return;
+	}
+}
 
 //random
 int maze::get_random_int(const int& min, const int& max) {
