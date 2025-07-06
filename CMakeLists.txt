@@ -21,7 +21,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(SDL3)
 
 # Add source to this project's executable.
-add_executable (simpleMazeGame "src/main.cpp"  "src/include/common.h"  "src/include/maze.h" "src/maze.cpp" "src/include/maze_visuals.h")
+add_executable (simpleMazeGame "src/main.cpp"    "src/include/maze.h" "src/maze.cpp")
 
 target_link_libraries(simpleMazeGame PRIVATE SDL3::SDL3)
 

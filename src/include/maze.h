@@ -1,9 +1,10 @@
 #pragma once
 
-#include "common.h"
+#include <SDL3/SDL.h>
 #include <vector>
+#include <iostream>
 
-struct maze_cell {
+typedef struct maze_cell {
 	int cell_id;
 	int x, y;
 	bool visited;
@@ -28,6 +29,14 @@ public:
 	int get_total_maze_size();
 	int get_maze_width();
 	int get_maze_height();
+
+	//drawing functions
+	//clear the background of the screen to a specific colour
+	void clear_background(SDL_Renderer* renderer, SDL_Color color);
+	//draw a individual maze cell
+	void draw_maze_cell(SDL_Renderer* renderer, maze_cell* maze_cell, const int& maze_width, const int& maze_height);
+	//draw the entire maze 
+	void draw_maze(SDL_Renderer* renderer, maze* maze);
 
 private:
 	//stores the original cells

@@ -1,7 +1,5 @@
-﻿#include "include/common.h"
-#include <SDL3/SDL.h>
+﻿#include <SDL3/SDL.h>
 #include "include/maze.h"
-#include "include/maze_visuals.h"
 
 int main(int argc, char** argv[])
 {
@@ -61,7 +59,7 @@ int main(int argc, char** argv[])
 					m->generate_new_empty_maze();
 
 					//draw the empty maze on screen 
-					draw_maze(renderer, m);
+					m->draw_maze(renderer, m);
 
 					break;
 
@@ -69,7 +67,7 @@ int main(int argc, char** argv[])
 				case SDLK_S:
 					m->solve_maze_rb();
 
-					draw_maze(renderer, m);
+					m->draw_maze(renderer, m);
 
 					break;
 				}
