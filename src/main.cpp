@@ -53,7 +53,7 @@ int main(int argc, char** argv[])
 				//on key m generate a new maze (testing only, new maze started from cli)
 				case SDLK_M:
 					//create a new maze object
-					m = new maze(10, 10);
+					m = new maze(100, 100);
 
 					//generate a new empty maze
 					m->generate_new_empty_maze();
@@ -65,24 +65,24 @@ int main(int argc, char** argv[])
 
 				//on key s solve the maze
 				case SDLK_S:
-					m->solve_maze_rb();
+					m->solve_maze_rb(renderer);
 
 					m->draw_maze(renderer, m);
 
 					break;
 				}
-
-				}
-
+			}
 		}
 
 		SDL_Delay(1); //limit to let cpu sleep a bit
 	}
 
+	//cleanup sdl at the end of the program
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
 
+	//free memory for maze object if it has been used
 	if (m != nullptr) {
 		delete m;
 		m = nullptr;

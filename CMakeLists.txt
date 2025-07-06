@@ -10,8 +10,8 @@ if (POLICY CMP0141)
 endif()
 
 project ("simpleMazeGame")
-include(FetchContent)
 
+include(FetchContent)
 FetchContent_Declare(
 	SDL3
 	GIT_REPOSITORY https://github.com/libsdl-org/SDL

@@ -1,6 +1,6 @@
 #include "include/maze.h"
 
-//constructor to assign width and height of the maze and set selected to null
+//CONSTRUCTORS AND DESTRUCTORS
 maze::maze(const int& mazeWidth, const int& mazeHeight) {
 	//set the width and height of the maze
 	maze_width = mazeWidth;
@@ -10,14 +10,15 @@ maze::maze(const int& mazeWidth, const int& mazeHeight) {
 	selected_cell = nullptr;
 }
 
-//destructor for maze class if needed
 maze::~maze() {
 	//delete selected_cell ptr
 	//vectors are auto cleaned up
 	selected_cell = nullptr;
 }
 
-//create a new empty maze 
+//PUBLIC FUNCTIONS
+
+//MAZE GENERATION FUNCTIONS
 void maze::generate_new_empty_maze() {
 	//clear the old maze cells to start fresh in the same vector
 	original_maze_cells.clear();
@@ -39,8 +40,7 @@ void maze::generate_new_empty_maze() {
     std::cout << "New empty maze generated with width: " << maze_width << " and height: " << maze_height << std::endl;
 }
 
-//solve the maze using recursive backtracking algorithm
-void maze::solve_maze_rb() {
+void maze::solve_maze_rb(SDL_Renderer* renderer) {
 	//generate a random index to start
 	srand((unsigned)time(NULL));
 	int random_index = rand() % get_total_maze_size();
@@ -48,40 +48,66 @@ void maze::solve_maze_rb() {
 	//set the selected cell
 	selected_cell = get_cell(random_index);
 	selected_cell->visited = true;
+	visited_cells.push_back(selected_cell); //add the first cell as visited
 
 	//while we haven't visited all cells
 	while (visited_cells.size() < get_total_maze_size()) {
 		//select a random direction to move
 		srand((unsigned)time(NULL));
-		int random_direction = rand() % 4; // 0: up, 1: right, 2: down, 3: left
+		int random_direction = get_random_int(0, 3); // 0: up, 1: right, 2: down, 3: left
 		maze_cell* target_cell = nullptr;
 
 		switch (random_direction) {
-			case 0: // up
-				if (selected_cell->y < 1) { continue; }
+			case 0:
+				//check if we can move up?
+				if (selected_cell->y < 1) { 
+					continue; 
+				}
+
+				//get the target cell above selected cell
 				target_cell = get_cell(selected_cell->cell_id - maze_width);
-				target_cell->visited = true;
+
+				//remove the walls between the selected cell and target cell
+				target_cell->bottom = false; //remove bottom of target cell
+				selected_cell->top = false; //remove top of selected cell
 
 				break;
 
-			case 1: //right
-				if (selected_cell->x > maze_width - 2) { continue; } 
+			case 1:
+				//check if we can move right?
+				if (selected_cell->x > maze_width - 2) { 
+					continue; 
+				} 
+
 				target_cell = get_cell(selected_cell->cell_id + 1);
-				target_cell->visited = true;
+
+				target_cell->left = false; 
+				selected_cell->right = false; 
 
 				break;
 
-			case 2: //down
-				if (selected_cell->y > maze_height - 2) { continue; }
+			case 2: 
+				//check if we can move down?
+				if (selected_cell->y > maze_height - 2) { 
+					continue; 
+				}
+
 				target_cell = get_cell(selected_cell->cell_id + maze_width);
-				target_cell->visited = true;
+
+				target_cell->top = false;
+				selected_cell->bottom = false;
 
 				break;
 
-			case 3: //left
-				if (selected_cell->x < 1) { continue; }
+			case 3: 
+				//check if we can move left?
+				if (selected_cell->x < 1) { 
+					continue;
+				}
 				target_cell = get_cell(selected_cell->cell_id - 1);
-				target_cell->visited = true;
+
+				target_cell->right = false;
+				selected_cell->left = false;
 
 				break;
 
@@ -89,37 +115,28 @@ void maze::solve_maze_rb() {
 				continue; //invalid dir
 		}
 
-		if (target_cell != nullptr) {
-			return;
+		if (target_cell == nullptr) {
+			continue; //no target cell found
 		}
+
+		//check if the target cell has already been visited?
+		if (target_cell->visited) {
+			continue;
+		}
+
+		//if the cell has not been visited already all it to the visited cells vector and update the selected cell
+
+		target_cell->visited = true; //mark the cell as visited
+		visited_cells.push_back(target_cell); //add to visited cells
+
+		selected_cell = target_cell; // update the selected cell
+
+		draw_maze(renderer, this);
+		SDL_Delay(16);
 	}
 }
 
-//return a ptr to a cell at specified index
-maze_cell* maze::get_cell(const int& index) {
-	//return the vector of maze cells
-	return &original_maze_cells[index];
-}
-
-//get the total size of the maze 
-int maze::get_total_maze_size()  {
-	//return the width of the maze
-	return maze_width * maze_height;
-}
-
-//get the width of the maze
-int maze::get_maze_width() {
-	//return the width of the maze
-	return maze_width;
-}
-
-//get the height of the maze
-int maze::get_maze_height() {
-	//return the height of the maze
-	return maze_height;
-}
-
-//clear the background of the screen to a specific colour
+//DRAWING FUNCTIONS (SDL REQUIRED)
 void maze::clear_background(SDL_Renderer* renderer, SDL_Color color) {
 	//set the draw colour to specified colour
 	SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
@@ -127,7 +144,6 @@ void maze::clear_background(SDL_Renderer* renderer, SDL_Color color) {
 	SDL_RenderClear(renderer);
 }
 
-//draw a individual maze cell
 void maze::draw_maze_cell(SDL_Renderer* renderer, maze_cell* maze_cell, const int& maze_width, const int& maze_height) {
 	int cell_width = 600 / maze_width;
 	int cell_height = 600 / maze_height;
@@ -169,7 +185,6 @@ void maze::draw_maze_cell(SDL_Renderer* renderer, maze_cell* maze_cell, const in
 	}
 }
 
-//draw the entire maze 
 void maze::draw_maze(SDL_Renderer* renderer, maze* maze) {
 	//draw the background in off-white 
 	SDL_Color* maze_background_colour = new SDL_Color{ 248, 248, 255, 255 };
@@ -186,4 +201,34 @@ void maze::draw_maze(SDL_Renderer* renderer, maze* maze) {
 	}
 
 	SDL_RenderPresent(renderer);
+}
+
+//PRIVATE FUNCTIONS
+
+//random
+int maze::get_random_int(const int& min, const int& max) {
+	std::random_device rd;
+	std::uniform_int_distribution<int> dist(min, max);
+	return dist(rd);
+}
+
+//GETTERS FOR MAZE ATTRIBUTES
+maze_cell* maze::get_cell(const int& index) {
+	//return the vector of maze cells
+	return &original_maze_cells[index];
+}
+
+int maze::get_total_maze_size() {
+	//return the width of the maze
+	return maze_width * maze_height;
+}
+
+int maze::get_maze_width() {
+	//return the width of the maze
+	return maze_width;
+}
+
+int maze::get_maze_height() {
+	//return the height of the maze
+	return maze_height;
 }
