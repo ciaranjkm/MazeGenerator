@@ -29,6 +29,13 @@ public:
 	void draw_maze_cell(SDL_Renderer* renderer, maze_cell* maze_cell, const int& maze_width, const int& maze_height); //draw a individual maze cell
 	void draw_maze(SDL_Renderer* renderer, maze* maze); //draw the entire maze 
 
+	//control bools for multi threading drawing
+	std::atomic_bool draw_requested = false;
+	std::atomic_bool allow_generation = true;
+	std::atomic_bool solved = false;
+	std::atomic_bool stop_thread = false;
+
+
 private:
 	//MAZE GENERATION FUNCTIONS
 	void destory_maze_walls(const int& direction, maze_cell* selected_cell, maze_cell* target_cell); //destory the wall between two cells
@@ -55,4 +62,5 @@ private:
 	//vars for maze sizing and any drawing stuff thats needed
 	int maze_width;
 	int maze_height;
+
 };

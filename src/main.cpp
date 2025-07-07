@@ -1,9 +1,15 @@
 ﻿#include <SDL3/SDL.h>
 #include "include/maze.h"
+#include <thread>
+
+void maze_thread_function(maze* m, SDL_Renderer* renderer) {
+	m->solve_maze_rb(renderer);
+}
 
 int main(int argc, char** argv[])
 {
 	maze* m = nullptr;
+	std::thread maze_thread;
 
 	//sdl startup
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -44,6 +50,13 @@ int main(int argc, char** argv[])
 			//on quit
 			case SDL_EVENT_QUIT:
 				isRunning = false;
+				if (m != nullptr) {
+					m->stop_thread = true;
+				}
+				if (maze_thread.joinable()) {
+					//stop maze thread
+					maze_thread.join();
+				}
 				break;
 
 			//on key down
@@ -54,29 +67,21 @@ int main(int argc, char** argv[])
 				case SDLK_M:
 					if (!(m != nullptr)) {
 						//create a new maze object
-						m = new maze(10, 10);
+						m = new maze(25, 25);
 
 						//generate a new empty maze
 						m->generate_new_empty_maze();
 
 						//draw the empty maze on screen 
 						m->draw_maze(renderer, m);
+
+						//create a thread to actually generate the maze (keep ui responsive)
+						maze_thread = std::thread(maze_thread_function, m, renderer);
 					}
 					else {
 						std::cout << "ALREADY HAVE A MAZE. PRESS D TO DELETE CURRENT MAZE\n";
 					}
 					break;
-
-				//on key s solve the maze
-				case SDLK_S:
-					if (m != nullptr) {
-						m->solve_maze_rb(renderer);
-					}
-					else {
-						std::cout << "THERE IS NO MAZE TO SOLVE. GENERATE ONE BY PRESSING M\n";
-					}
-					break;
-
 				//on key d delete current maze if it exists
 				case SDLK_D:
 					if (m != nullptr) {
@@ -88,6 +93,20 @@ int main(int argc, char** argv[])
 						std::cout << "CANNOT DELETE MAZE, THERE IS NO MAZE TO DELETE. CREATE ONE BY PRESSING M\n";
 					}
 					break;
+				}
+			}
+		}
+
+		if (m != nullptr) {
+			if (m->draw_requested) {
+				m->draw_maze(renderer, m); //draw the maze from the main thread
+				m->draw_requested = false;
+				m->allow_generation = true;
+			}
+
+			if (m->stop_thread) {
+				if (maze_thread.joinable()) {
+					maze_thread.join();
 				}
 			}
 		}
