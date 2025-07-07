@@ -231,19 +231,19 @@ void maze::draw_maze_cell(SDL_Renderer* renderer, maze_cell* maze_cell, const in
 	}
 }
 
-void maze::draw_maze(SDL_Renderer* renderer, maze* maze) {
+void maze::draw_maze(SDL_Renderer* renderer) {
 	//draw the background in off-white 
 	SDL_Color* maze_background_colour = new SDL_Color{ 248, 248, 255, 255 };
 	clear_background(renderer, *maze_background_colour);
 	delete maze_background_colour;
 
 	//get the height and width of the maze to draw each cell correctly
-	int maze_width = maze->get_maze_width();
-	int maze_height = maze->get_maze_height();
+	int maze_width = get_maze_width();
+	int maze_height = get_maze_height();
 
 	//draw each cell in the maze
-	for (int i = 0; i < maze->get_total_maze_size(); i++) {
-		draw_maze_cell(renderer, maze->get_cell(i), maze_width, maze_height);
+	for (int i = 0; i < get_total_maze_size(); i++) {
+		draw_maze_cell(renderer, get_cell(i), maze_width, maze_height);
 	}
 
 	SDL_RenderPresent(renderer);
