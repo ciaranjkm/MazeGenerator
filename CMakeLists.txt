@@ -29,10 +29,35 @@ set(SDLIMAGE_AVIF OFF)
 
 FetchContent_MakeAvailable(SDL3_image)
 
+set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/externals/imgui)
+set(IMGUI_SOURCES
+    ${IMGUI_DIR}/imgui.cpp
+    ${IMGUI_DIR}/imgui_draw.cpp
+    ${IMGUI_DIR}/imgui_tables.cpp
+    ${IMGUI_DIR}/imgui_widgets.cpp
+)
+
+set(IMGUI_BACKENDS
+    ${IMGUI_DIR}/backends/imgui_impl_sdl3.cpp
+    ${IMGUI_DIR}/backends/imgui_impl_sdlrenderer3.cpp
+)
+
+add_library(imgui STATIC
+    ${IMGUI_SOURCES}
+    ${IMGUI_BACKENDS}
+)
+
+target_include_directories(imgui PUBLIC
+    ${IMGUI_DIR}
+    ${IMGUI_DIR}/backends
+)
+
+target_link_libraries(imgui PRIVATE SDL3::SDL3)
+
 # Add source to this project's executable.
 add_executable (simpleMazeGame "src/main.cpp" "src/include/maze.h" "src/maze.cpp" "src/application.cpp" "src/include/application.h")
 
-target_link_libraries(simpleMazeGame PUBLIC SDL3_image::SDL3_image SDL3::SDL3)
+target_link_libraries(simpleMazeGame PUBLIC imgui SDL3_image::SDL3_image SDL3::SDL3)
 
 if(WIN32)
     add_custom_command(TARGET simpleMazeGame POST_BUILD

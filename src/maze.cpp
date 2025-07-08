@@ -277,9 +277,6 @@ void maze::draw_maze(SDL_Renderer* renderer, const bool& screenshot) {
 	//destroy the texture after presenting
 	SDL_DestroyTexture(draw_maze_texture);
 
-	//present the renderer to show the maze
-	SDL_RenderPresent(renderer);
-
 	//reset render target to default
 	SDL_SetRenderTarget(renderer, nullptr);
 }

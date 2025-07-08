@@ -81,13 +81,32 @@ void application::run() {
 	SDL_SetRenderDrawColor(renderer, 248, 248, 255, 255);
 	SDL_RenderClear(renderer);
 
+	//imgui setup
+
+	//create imgui context
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io; // Get IO object for ImGui
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
+	//setup style for imgui
+	ImGui::StyleColorsDark();
+
+	//setup backends
+	ImGui_ImplSDL3_InitForSDLRenderer(window, renderer);
+	ImGui_ImplSDLRenderer3_Init(renderer);
+
+	ImVec4 clear_colour = ImVec4(1, 1, 1, 0);
+
 	//main application loop
 	bool isRunning = true;
 	while (isRunning) {
-
 		//poll for events
 		SDL_Event e;
 		while (SDL_PollEvent(&e)) {
+			//process imgui events
+			ImGui_ImplSDL3_ProcessEvent(&e); 
+
 			switch (e.type) {
 				//on quit
 			case SDL_EVENT_QUIT:
@@ -161,14 +180,15 @@ void application::run() {
 			}
 		}
 
+		//clear previous frame
+		SDL_SetRenderDrawColor(renderer, 248, 248, 255, 255);
+		SDL_RenderClear(renderer);
+
 		//if there is a maze being generated or solved
 		if (active_maze != nullptr) {
-			//is the maze requesting a draw?
-			if (active_maze->draw_requested) {
-				active_maze->draw_maze(renderer, false); //draw the maze from the main thread
-				active_maze->draw_requested = false;
-				active_maze->allow_generation = true;
-			}
+			active_maze->allow_generation = false;
+			active_maze->draw_maze(renderer, false);
+			active_maze->allow_generation = true;
 
 			//is the maze solved? should we stop the thread?
 			if (active_maze->solved) {
@@ -179,6 +199,23 @@ void application::run() {
 			}
 		}
 
+		//start imgui frame
+		ImGui_ImplSDLRenderer3_NewFrame();
+		ImGui_ImplSDL3_NewFrame();
+		ImGui::NewFrame();
+
+		//imgui window
+		{
+			ImGui::Begin("Maze Generator");
+			ImGui::Text("This is text text to check this is working!\n");
+
+			ImGui::End();
+		}
+
+		ImGui::Render();
+		ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer);
+		SDL_RenderPresent(renderer);
+		
 		SDL_Delay(1); //limit to let cpu sleep a bit
 	}
 
