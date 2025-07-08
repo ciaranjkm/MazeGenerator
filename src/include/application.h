@@ -2,7 +2,9 @@
 
 #include "maze.h"
 #include <SDL3/SDL.h>
+#include <SDL3_image/SDL_image.h>
 #include <thread>
+#include <chrono>
 
 class application {
 public:
@@ -10,7 +12,6 @@ public:
 	~application();
 
 	void run();
-
 	void maze_thread_function(SDL_Renderer* renderer);
 
 private:

@@ -17,18 +17,32 @@ FetchContent_Declare(
 	GIT_REPOSITORY https://github.com/libsdl-org/SDL
 	GIT_TAG release-3.2.x
 )
-
 FetchContent_MakeAvailable(SDL3)
+
+FetchContent_Declare(
+    SDL3_image
+    GIT_REPOSITORY https://github.com/libsdl-org/SDL_image
+    GIT_TAG release-3.2.x
+)
+
+set(SDLIMAGE_AVIF OFF)
+
+FetchContent_MakeAvailable(SDL3_image)
 
 # Add source to this project's executable.
 add_executable (simpleMazeGame "src/main.cpp" "src/include/maze.h" "src/maze.cpp" "src/application.cpp" "src/include/application.h")
 
-target_link_libraries(simpleMazeGame PRIVATE SDL3::SDL3)
+target_link_libraries(simpleMazeGame PUBLIC SDL3_image::SDL3_image SDL3::SDL3)
 
 if(WIN32)
     add_custom_command(TARGET simpleMazeGame POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             $<TARGET_FILE:SDL3::SDL3>  
+            $<TARGET_FILE_DIR:simpleMazeGame>  
+    )
+    add_custom_command(TARGET simpleMazeGame POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_FILE:SDL3_image::SDL3_image>  
             $<TARGET_FILE_DIR:simpleMazeGame>  
     )
 endif()

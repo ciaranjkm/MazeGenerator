@@ -37,12 +37,12 @@ void maze::generate_new_empty_maze() {
 	}
 
 	//inform user of success
-    std::cout << "NEW UNGENERATED MAZE CREATED WITH WIDTH: " << maze_width << " AND HEIGHT: " << maze_height << std::endl;
+	std::cout << "CREATED NEW EMPTY MAZE WITH SIZE: " << get_maze_width() << "x" << get_maze_height() << "\n";
 }
 
 void maze::solve_maze_rb(SDL_Renderer* renderer){
 	SDL_Delay(500);
-	std::cout << "GENERATING MAZE OF TOTAL SIZE: " << get_total_maze_size() << " USING REVERSE BACKTRACKING ALGORITHM\n";
+	std::cout << "GENERATING MAZE OF SIZE: " << get_maze_width() << "x" << get_maze_height() << ", WITH TOTAL CELLS: " << get_total_maze_size() << " \nALGORITHM: REVERSE BACKTRACKING\n";
 	
 	//get random index to start maze from
 	int random_index = get_random_int(0, original_maze_cells.size() - 1);
@@ -178,8 +178,8 @@ void maze::solve_maze_rb(SDL_Renderer* renderer){
 		SDL_Delay(1);
 	}
 
-	std::cout << "MAZE COMPLETED.\n";
-	stop_thread = true;
+	std::cout << "\n=== MAZE COMPLETED ===\n\n";
+	solved = true;
 }
 
 //DRAWING FUNCTIONS (SDL REQUIRED)
@@ -231,7 +231,16 @@ void maze::draw_maze_cell(SDL_Renderer* renderer, maze_cell* maze_cell, const in
 	}
 }
 
-void maze::draw_maze(SDL_Renderer* renderer) {
+void maze::draw_maze(SDL_Renderer* renderer, const bool& screenshot) {
+	//create an SDL texture to draw the maze onto
+	SDL_Texture* draw_maze_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, 620, 620);
+	if (draw_maze_texture == nullptr) {
+		std::cerr << "Failed to create texture for maze drawing: " << SDL_GetError() << "\n";
+		return;
+	}
+
+	SDL_SetRenderTarget(renderer, draw_maze_texture);
+	
 	//draw the background in off-white 
 	SDL_Color* maze_background_colour = new SDL_Color{ 248, 248, 255, 255 };
 	clear_background(renderer, *maze_background_colour);
@@ -246,7 +255,30 @@ void maze::draw_maze(SDL_Renderer* renderer) {
 		draw_maze_cell(renderer, get_cell(i), maze_width, maze_height);
 	}
 
+	if (screenshot) {
+		SDL_Surface* m_surface = SDL_RenderReadPixels(renderer, NULL);
+		if (m_surface == nullptr) {
+			std::cout << "error\n";
+			return;
+		}
+		else {
+			SDL_SaveBMP(m_surface, "maze.bmp");
+			std::cout << "read pixels\n";
+			SDL_DestroySurface(m_surface);
+		}
+	}
+
+	//render the texture to the renderer
+	SDL_RenderTexture(renderer, draw_maze_texture, nullptr, nullptr);
+
+	//destroy the texture after presenting
+	SDL_DestroyTexture(draw_maze_texture);
+
+	//present the renderer to show the maze
 	SDL_RenderPresent(renderer);
+
+	//reset render target to default
+	SDL_SetRenderTarget(renderer, nullptr);
 }
 
 //PRIVATE FUNCTIONS

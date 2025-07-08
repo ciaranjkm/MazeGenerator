@@ -61,7 +61,6 @@ void application::run() {
 		std::cout << "SDL could not create a renderer, error: " << SDL_GetError() << "\n";
 		return;
 	}
-
 	//main application loop
 	bool isRunning = true;
 	while (isRunning) {
@@ -96,8 +95,9 @@ void application::run() {
 						active_maze->generate_new_empty_maze();
 
 						//draw the empty maze on screen 
-						active_maze->draw_maze(renderer);
+						active_maze->draw_maze(renderer, false);
 
+						//start a new thread that solves the maze
 						maze_thread = std::thread(&application::maze_thread_function, this, renderer);
 					}
 					else {
@@ -112,27 +112,48 @@ void application::run() {
 							maze_thread.join();
 						}
 
+						SDL_SetRenderDrawColor(renderer, 248, 248, 255, 255);
+						SDL_RenderClear(renderer); //clear the renderer
+						SDL_RenderPresent(renderer); //present the cleared renderer
+
 						delete active_maze;
 						active_maze = nullptr;
-						std::cout << "FREED MAZE OBJECT FROM MEMORY. CAN NOW CREATE A NEW MAZE.";
+
+						std::cout << "FREED MAZE OBJECT FROM MEMORY. CAN NOW CREATE A NEW MAZE.\n";
 					}
 					else {
 						std::cout << "CANNOT DELETE MAZE, THERE IS NO MAZE TO DELETE. CREATE ONE BY PRESSING M\n";
+					}
+					break;
+
+				//on key p, take a screenshot of the screen at the time
+				case SDLK_P:
+					if(active_maze != nullptr) {
+						active_maze->allow_generation = false;
+						active_maze->draw_maze(renderer, true); //redraw maze with screenshot flag set
+						active_maze->allow_generation = true;
+					}
+					else {
+						std::cout << "CANNOT SCREENSHOT MAZE THERE IS NOT ONE IN MEMORY.";
 					}
 					break;
 				}
 			}
 		}
 
+		//if there is a maze being generated or solved
 		if (active_maze != nullptr) {
+			//is the maze requesting a draw?
 			if (active_maze->draw_requested) {
-				active_maze->draw_maze(renderer); //draw the maze from the main thread
+				active_maze->draw_maze(renderer, false); //draw the maze from the main thread
 				active_maze->draw_requested = false;
 				active_maze->allow_generation = true;
 			}
 
-			if (active_maze->stop_thread) {
+			//is the maze solved? should we stop the thread?
+			if (active_maze->solved) {
 				if (maze_thread.joinable()) {
+					active_maze->stop_thread = true; //stop the maze thread if it is still running
 					maze_thread.join();
 				}
 			}

@@ -26,7 +26,7 @@ public:
 	//DRAWING FUNCTIONS
 	void clear_background(SDL_Renderer* renderer, SDL_Color color); //clear the background of the screen to a specific colour
 	void draw_maze_cell(SDL_Renderer* renderer, maze_cell* maze_cell, const int& maze_width, const int& maze_height); //draw a individual maze cell
-	void draw_maze(SDL_Renderer* renderer); //draw the entire maze 
+	void draw_maze(SDL_Renderer* renderer, const bool& screenshot); //draw the entire maze 
 
 	//control bools for multi threading drawing
 	std::atomic_bool draw_requested = false;
