@@ -1,5 +1,6 @@
 #include "include/application.h"
 #include "include/maze.h"
+#include <filesystem>
 
 application::application() {
 	window = nullptr;
@@ -34,11 +35,22 @@ void application::maze_thread_function(SDL_Renderer* renderer) {
 }
 
 void application::run() {
+	//check if photos dir exists, if not create it so photos can be saved
+	if (!std::filesystem::exists("photos")) {
+		std::cout << "CREATING PHOTOS DIRECTORY\n";
+		std::filesystem::create_directory("photos");
+	}
+	else {
+		std::cout << "PHOTOS DIRECTORY FOUND\n";
+	}
+
 	//sdl startup
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-		std::cout << "SDL could not initialise, error: " << SDL_GetError() << "\n";
+		std::cerr << "SDL INITIALISATION HAS FAILED, ERROR: " << SDL_GetError() << "\n";
 		return;
 	}
+
+	std::cout << "SDL INITIALISED\n";
 
 	//create sdl window
 	SDL_Window* window = SDL_CreateWindow(
@@ -47,9 +59,11 @@ void application::run() {
 		0);
 
 	if (window == nullptr) {
-		std::cout << "SDL could not create a window, error: " << SDL_GetError() << "\n";
+		std::cerr << "SDL COULD NOT CREATE A WINDOW, ERROR: " << SDL_GetError() << "\n";
 		return;
 	}
+
+	std::cout << "SDL WINDOW CREATED\n";
 
 	//create sdl renderer
 	SDL_Renderer* renderer = SDL_CreateRenderer(
@@ -58,9 +72,15 @@ void application::run() {
 	);
 
 	if (renderer == nullptr) {
-		std::cout << "SDL could not create a renderer, error: " << SDL_GetError() << "\n";
+		std::cerr << "SDL COULD NOT CREATE A RENDERER, ERROR: " << SDL_GetError() << "\n";
 		return;
 	}
+
+	std::cout << "SDL RENDERER CREATED\n====================\n";
+
+	SDL_SetRenderDrawColor(renderer, 248, 248, 255, 255);
+	SDL_RenderClear(renderer);
+
 	//main application loop
 	bool isRunning = true;
 	while (isRunning) {
@@ -89,7 +109,7 @@ void application::run() {
 				case SDLK_M:
 					if (!(active_maze != nullptr)) {
 						//create a new maze object
-						active_maze = new maze(25, 25);
+						active_maze = new maze(10, 10);
 
 						//generate a new empty maze
 						active_maze->generate_new_empty_maze();
@@ -119,7 +139,7 @@ void application::run() {
 						delete active_maze;
 						active_maze = nullptr;
 
-						std::cout << "FREED MAZE OBJECT FROM MEMORY. CAN NOW CREATE A NEW MAZE.\n";
+						std::cout << "FREED MAZE OBJECT FROM MEMORY. CAN NOW CREATE A NEW MAZE.\n====================\n";
 					}
 					else {
 						std::cout << "CANNOT DELETE MAZE, THERE IS NO MAZE TO DELETE. CREATE ONE BY PRESSING M\n";
@@ -134,7 +154,7 @@ void application::run() {
 						active_maze->allow_generation = true;
 					}
 					else {
-						std::cout << "CANNOT SCREENSHOT MAZE THERE IS NOT ONE IN MEMORY.";
+						std::cout << "CANNOT SCREENSHOT MAZE THERE IS NOT ONE IN MEMORY.\n";
 					}
 					break;
 				}

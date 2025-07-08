@@ -178,7 +178,7 @@ void maze::solve_maze_rb(SDL_Renderer* renderer){
 		SDL_Delay(1);
 	}
 
-	std::cout << "\n=== MAZE COMPLETED ===\n\n";
+	std::cout << "MAZE COMPLETED\n====================\n";
 	solved = true;
 }
 
@@ -250,7 +250,7 @@ void maze::draw_maze(SDL_Renderer* renderer, const bool& screenshot) {
 	int maze_width = get_maze_width();
 	int maze_height = get_maze_height();
 
-	//draw each cell in the maze
+	//draw each cell in the mazeB
 	for (int i = 0; i < get_total_maze_size(); i++) {
 		draw_maze_cell(renderer, get_cell(i), maze_width, maze_height);
 	}
@@ -262,8 +262,11 @@ void maze::draw_maze(SDL_Renderer* renderer, const bool& screenshot) {
 			return;
 		}
 		else {
-			SDL_SaveBMP(m_surface, "maze.bmp");
-			std::cout << "read pixels\n";
+			time_t now = time(0);
+			std::string filename = "photos/" + std::to_string(now) + ".bmp";
+
+			SDL_SaveBMP(m_surface, filename.c_str());
+			std::cout << "SAVED SCREENSHOT TO: " << filename << "\n";
 			SDL_DestroySurface(m_surface);
 		}
 	}

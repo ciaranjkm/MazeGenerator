@@ -5,6 +5,8 @@
 #include <vector>
 #include <iostream>
 #include <random>
+#include <ctime>
+#include <string>
 
 typedef struct maze_cell {
 	int cell_id;
