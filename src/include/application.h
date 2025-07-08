@@ -15,6 +15,11 @@ public:
 	~application();
 
 	void run();
+
+	void generate_new_maze_button_click(const int& width, const int& height);
+	void delete_current_maze_button_click();
+	void screenshot_maze_button_click(SDL_Renderer* renderer);
+
 	void maze_thread_function(SDL_Renderer* renderer);
 
 private:

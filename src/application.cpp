@@ -98,6 +98,10 @@ void application::run() {
 
 	ImVec4 clear_colour = ImVec4(1, 1, 1, 0);
 
+	//control variables for the imgui window
+	int m_width = 10;
+	int m_height = 10;
+
 	//main application loop
 	bool isRunning = true;
 	while (isRunning) {
@@ -124,57 +128,9 @@ void application::run() {
 			case SDL_EVENT_KEY_DOWN:
 				switch (e.key.key)
 				{
-					//on key m generate a new maze (testing only, new maze started from cli)
-				case SDLK_M:
-					if (!(active_maze != nullptr)) {
-						//create a new maze object
-						active_maze = new maze(10, 10);
-
-						//generate a new empty maze
-						active_maze->generate_new_empty_maze();
-
-						//draw the empty maze on screen 
-						active_maze->draw_maze(renderer, false);
-
-						//start a new thread that solves the maze
-						maze_thread = std::thread(&application::maze_thread_function, this, renderer);
-					}
-					else {
-						std::cout << "ALREADY HAVE A MAZE. PRESS D TO DELETE CURRENT MAZE\n";
-					}
-					break;
-					//on key d delete current maze if it exists
-				case SDLK_D:
-					if (active_maze != nullptr) {
-						active_maze->stop_thread = true;
-						if (maze_thread.joinable()) {
-							maze_thread.join();
-						}
-
-						SDL_SetRenderDrawColor(renderer, 248, 248, 255, 255);
-						SDL_RenderClear(renderer); //clear the renderer
-						SDL_RenderPresent(renderer); //present the cleared renderer
-
-						delete active_maze;
-						active_maze = nullptr;
-
-						std::cout << "FREED MAZE OBJECT FROM MEMORY. CAN NOW CREATE A NEW MAZE.\n====================\n";
-					}
-					else {
-						std::cout << "CANNOT DELETE MAZE, THERE IS NO MAZE TO DELETE. CREATE ONE BY PRESSING M\n";
-					}
-					break;
-
 				//on key p, take a screenshot of the screen at the time
 				case SDLK_P:
-					if(active_maze != nullptr) {
-						active_maze->allow_generation = false;
-						active_maze->draw_maze(renderer, true); //redraw maze with screenshot flag set
-						active_maze->allow_generation = true;
-					}
-					else {
-						std::cout << "CANNOT SCREENSHOT MAZE THERE IS NOT ONE IN MEMORY.\n";
-					}
+					
 					break;
 				}
 			}
@@ -207,7 +163,16 @@ void application::run() {
 		//imgui window
 		{
 			ImGui::Begin("Maze Generator");
-			ImGui::Text("This is text text to check this is working!\n");
+			if (ImGui::Button("Generate New Maze")) {
+				generate_new_maze_button_click(m_width, m_height);
+			}
+			if (ImGui::Button("Delete Current Maze")) {
+				delete_current_maze_button_click();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Screenshot")) {
+				screenshot_maze_button_click(renderer);
+			}
 
 			ImGui::End();
 		}
@@ -228,5 +193,53 @@ void application::run() {
 	if (active_maze != nullptr) {
 		delete active_maze;
 		active_maze = nullptr;
+	}
+}
+
+void application::generate_new_maze_button_click(const int& width, const int& height) {
+	if (!(active_maze != nullptr)) {
+		//create a new maze object
+		active_maze = new maze(width, height);
+		//generate a new empty maze
+		active_maze->generate_new_empty_maze();
+		//draw the empty maze on screen 
+		active_maze->draw_maze(renderer, false);
+		//start a new thread that solves the maze
+		maze_thread = std::thread(&application::maze_thread_function, this, renderer);
+	}
+	else {
+		std::cout << "ALREADY HAVE A MAZE. PRESS D TO DELETE CURRENT MAZE\n";
+	}
+}
+
+void application::delete_current_maze_button_click() {
+	if (active_maze != nullptr) {
+		active_maze->stop_thread = true;
+		if (maze_thread.joinable()) {
+			maze_thread.join();
+		}
+
+		SDL_SetRenderDrawColor(renderer, 248, 248, 255, 255);
+		SDL_RenderClear(renderer); //clear the renderer
+		SDL_RenderPresent(renderer); //present the cleared renderer
+
+		delete active_maze;
+		active_maze = nullptr;
+
+		std::cout << "FREED MAZE OBJECT FROM MEMORY. CAN NOW CREATE A NEW MAZE.\n====================\n";
+	}
+	else {
+		std::cout << "CANNOT DELETE MAZE, THERE IS NO MAZE TO DELETE. CREATE ONE BY PRESSING M\n";
+	}
+}
+
+void application::screenshot_maze_button_click(SDL_Renderer* renderer) {
+	if (active_maze != nullptr) {
+		active_maze->allow_generation = false;
+		active_maze->draw_maze(renderer, true); //redraw maze with screenshot flag set
+		active_maze->allow_generation = true;
+	}
+	else {
+		std::cout << "CANNOT SCREENSHOT MAZE THERE IS NOT ONE IN MEMORY.\n";
 	}
 }
