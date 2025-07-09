@@ -40,7 +40,7 @@ void maze::generate_new_empty_maze() {
 	std::cout << "CREATED NEW EMPTY MAZE WITH SIZE: " << get_maze_width() << "x" << get_maze_height() << "\n";
 }
 
-void maze::solve_maze_rb(SDL_Renderer* renderer){
+void maze::solve_maze_rb(){
 	SDL_Delay(500);
 	std::cout << "GENERATING MAZE OF SIZE: " << get_maze_width() << "x" << get_maze_height() << ", WITH TOTAL CELLS: " << get_total_maze_size() << " \nALGORITHM: REVERSE BACKTRACKING\n";
 	

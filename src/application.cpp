@@ -2,6 +2,7 @@
 #include "include/maze.h"
 #include <filesystem>
 
+//CONSTRUCTOR AND DESTRUCTOR
 application::application() {
 	window = nullptr;
 	renderer = nullptr;
@@ -28,20 +29,7 @@ application::~application() {
 	}
 }
 
-void application::maze_thread_function(SDL_Renderer* renderer, const int& algorithm_to_use) {
-	if (active_maze != nullptr) {
-		switch (algorithm_to_use) {
-			case 0:
-				active_maze->solve_maze_rb(renderer);
-				break;
-
-			default:
-				active_maze->solve_maze_rb(renderer);
-				break;
-		}
-	}
-}
-
+//MAIN APPLICATION LOOP
 void application::run() {
 	//check if photos dir exists, if not create it so photos can be saved
 	if (!std::filesystem::exists("photos")) {
@@ -181,48 +169,10 @@ void application::run() {
 		{
 			ImGui::Begin("Maze Generator");
 
-			ImGui::SeparatorText("Maze Generation Algorithm");
-			if (ImGui::BeginListBox("##algorithm_selection")) {
-				for (int n = 0; n < IM_ARRAYSIZE(algorithm_names); n++) {
-					const bool is_selected = (algorithm_selected_index == n);
-					if(ImGui::Selectable(algorithm_names[n], is_selected)) {
-						algorithm_selected_index = n;
-					}
-
-					if (is_selected) {
-						ImGui::SetItemDefaultFocus();
-					}
-				}
-
-				ImGui::EndListBox();
-			}
-
-			ImGui::SeparatorText("Maze Settings");
-			ImGui::SliderInt("Width", &m_width, min_width_height, max_width_height);
-			ImGui::SliderInt("Height", &m_height, min_width_height, max_width_height);
-
-			ImGui::SeparatorText("Start/Stop Generation");
-			if (ImGui::Button("Generate New Maze")) {
-				generate_new_maze_button_click(renderer, m_width, m_height, algorithm_selected_index);
-			}
-			ImGui::SameLine();
-			if (ImGui::Button("Delete Current Maze")) {
-				delete_current_maze_button_click();
-			}
-
-			ImGui::SeparatorText("Extras");
-			if (ImGui::Button("Screenshot")) {
-				screenshot_maze_button_click(renderer);
-			}
-			ImGui::SameLine();
-			if (ImGui::Button("Quit (ESC)")) {
-				SDL_Event* quit = new SDL_Event();
-				quit->type = SDL_EVENT_QUIT;
-				SDL_PushEvent(quit);
-
-				delete quit;
-				quit = nullptr;
-			}
+			algorithm_selection_listbox(algorithm_names, algorithm_selected_index);
+			maze_settings_sliders(m_width, m_height, min_width_height, max_width_height);
+			generation_control_buttons(renderer, m_width, m_height, algorithm_selected_index);
+			extra_buttons(renderer);
 
 			ImGui::End();
 		}
@@ -246,6 +196,7 @@ void application::run() {
 	}
 }
 
+//UI BUTTON FUNCTIONS
 void application::generate_new_maze_button_click(SDL_Renderer* renderer, const int& width, const int& height, const int& algorithm_to_use) {
 	if (!(active_maze != nullptr)) {
 		//create a new maze object
@@ -255,7 +206,7 @@ void application::generate_new_maze_button_click(SDL_Renderer* renderer, const i
 		//draw the empty maze on screen 
 		active_maze->draw_maze(renderer, false, 1);
 		//start a new thread that solves the maze
-		maze_thread = std::thread(&application::maze_thread_function, this, renderer, algorithm_to_use);
+		maze_thread = std::thread(&application::maze_thread_function, this, algorithm_to_use);
 	}
 	else {
 		std::cout << "ALREADY HAVE A MAZE. PRESS D TO DELETE CURRENT MAZE\n";
@@ -291,5 +242,72 @@ void application::screenshot_maze_button_click(SDL_Renderer* renderer) {
 	}
 	else {
 		std::cout << "CANNOT SCREENSHOT MAZE THERE IS NOT ONE IN MEMORY.\n";
+	}
+}
+
+//UI CONTAINERS
+void application::algorithm_selection_listbox(const char* algorithm_names[], int& algorithm_selected_index) {
+	ImGui::SeparatorText("Maze Generation Algorithm");
+	if (ImGui::BeginListBox("##algorithm_selection")) {
+		for (int n = 0; n < IM_ARRAYSIZE(algorithm_names); n++) {
+			const bool is_selected = (algorithm_selected_index == n);
+			if (ImGui::Selectable(algorithm_names[n], is_selected)) {
+				algorithm_selected_index = n;
+			}
+
+			if (is_selected) {
+				ImGui::SetItemDefaultFocus();
+			}
+		}
+
+		ImGui::EndListBox();
+	}
+}
+
+void application::maze_settings_sliders(int& m_height, int& m_width, const int& min_width_height, const int& max_width_height) {
+	ImGui::SeparatorText("Maze Settings");
+	ImGui::SliderInt("Width", &m_width, min_width_height, max_width_height);
+	ImGui::SliderInt("Height", &m_height, min_width_height, max_width_height);
+}
+
+void application::generation_control_buttons(SDL_Renderer* renderer, const int& m_width, const int& m_height, const int& algorithm_selected_index) {
+	ImGui::SeparatorText("Start/Stop Generation");
+	if (ImGui::Button("Generate New Maze")) {
+		generate_new_maze_button_click(renderer, m_width, m_height, algorithm_selected_index);
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Delete Current Maze")) {
+		delete_current_maze_button_click();
+	}
+}
+
+void application::extra_buttons(SDL_Renderer* renderer) {
+	ImGui::SeparatorText("Extras");
+	if (ImGui::Button("Screenshot")) {
+		screenshot_maze_button_click(renderer);
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Quit (ESC)")) {
+		SDL_Event* quit = new SDL_Event();
+		quit->type = SDL_EVENT_QUIT;
+		SDL_PushEvent(quit);
+
+		delete quit;
+		quit = nullptr;
+	}
+}
+
+//MULTITHREADING FUNCTIONS
+void application::maze_thread_function(const int& algorithm_to_use) {
+	if (active_maze != nullptr) {
+		switch (algorithm_to_use) {
+			case 0:
+				active_maze->solve_maze_rb();
+				break;
+
+			default:
+				active_maze->solve_maze_rb();
+				break;
+		}		
 	}
 }

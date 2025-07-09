@@ -23,7 +23,7 @@ public:
 
 	//MAZE GENERATION FUNCTIONS
 	void generate_new_empty_maze(); //fills original maze cells with new empty cells the size of the maze width * height
-	void solve_maze_rb(SDL_Renderer* renderer); //solves the maze using reverse backtracking
+	void solve_maze_rb(); //solves the maze using reverse backtracking
 
 	//DRAWING FUNCTIONS
 	void clear_background(SDL_Renderer* renderer, SDL_Color color); //clear the background of the screen to a specific colour
