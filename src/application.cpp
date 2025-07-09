@@ -28,9 +28,17 @@ application::~application() {
 	}
 }
 
-void application::maze_thread_function(SDL_Renderer* renderer) {
+void application::maze_thread_function(SDL_Renderer* renderer, const int& algorithm_to_use) {
 	if (active_maze != nullptr) {
-		active_maze->solve_maze_rb(renderer);
+		switch (algorithm_to_use) {
+			case 0:
+				active_maze->solve_maze_rb(renderer);
+				break;
+
+			default:
+				active_maze->solve_maze_rb(renderer);
+				break;
+		}
 	}
 }
 
@@ -101,6 +109,15 @@ void application::run() {
 	//control variables for the imgui window
 	int m_width = 10;
 	int m_height = 10;
+	const int max_width_height = 200;
+	const int min_width_height = 1;
+
+	int animation_speed = 16; //default speed in ms
+	const int max_animation_speed = 250;
+	const int min_animation_speed = 1;
+
+	const char* algorithm_names[] = { "Recursive Backtracking", "W.I.P #1", "W.I.P #2" };
+	int algorithm_selected_index = 0;
 
 	//main application loop
 	bool isRunning = true;
@@ -124,14 +141,14 @@ void application::run() {
 				}
 				break;
 
-				//on key down
 			case SDL_EVENT_KEY_DOWN:
-				switch (e.key.key)
-				{
-				//on key p, take a screenshot of the screen at the time
-				case SDLK_P:
-					
-					break;
+				if (e.key.key == SDLK_ESCAPE) {
+					SDL_Event* quit = new SDL_Event();
+					quit->type = SDL_EVENT_QUIT;
+					SDL_PushEvent(quit);
+
+					delete quit;
+					quit = nullptr;
 				}
 			}
 		}
@@ -143,7 +160,7 @@ void application::run() {
 		//if there is a maze being generated or solved
 		if (active_maze != nullptr) {
 			active_maze->allow_generation = false;
-			active_maze->draw_maze(renderer, false);
+			active_maze->draw_maze(renderer, false, animation_speed);
 			active_maze->allow_generation = true;
 
 			//is the maze solved? should we stop the thread?
@@ -163,15 +180,48 @@ void application::run() {
 		//imgui window
 		{
 			ImGui::Begin("Maze Generator");
-			if (ImGui::Button("Generate New Maze")) {
-				generate_new_maze_button_click(m_width, m_height);
+
+			ImGui::SeparatorText("Maze Generation Algorithm");
+			if (ImGui::BeginListBox("##algorithm_selection")) {
+				for (int n = 0; n < IM_ARRAYSIZE(algorithm_names); n++) {
+					const bool is_selected = (algorithm_selected_index == n);
+					if(ImGui::Selectable(algorithm_names[n], is_selected)) {
+						algorithm_selected_index = n;
+					}
+
+					if (is_selected) {
+						ImGui::SetItemDefaultFocus();
+					}
+				}
+
+				ImGui::EndListBox();
 			}
+
+			ImGui::SeparatorText("Maze Settings");
+			ImGui::SliderInt("Width", &m_width, min_width_height, max_width_height);
+			ImGui::SliderInt("Height", &m_height, min_width_height, max_width_height);
+
+			ImGui::SeparatorText("Start/Stop Generation");
+			if (ImGui::Button("Generate New Maze")) {
+				generate_new_maze_button_click(renderer, m_width, m_height, algorithm_selected_index);
+			}
+			ImGui::SameLine();
 			if (ImGui::Button("Delete Current Maze")) {
 				delete_current_maze_button_click();
 			}
-			ImGui::SameLine();
+
+			ImGui::SeparatorText("Extras");
 			if (ImGui::Button("Screenshot")) {
 				screenshot_maze_button_click(renderer);
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Quit (ESC)")) {
+				SDL_Event* quit = new SDL_Event();
+				quit->type = SDL_EVENT_QUIT;
+				SDL_PushEvent(quit);
+
+				delete quit;
+				quit = nullptr;
 			}
 
 			ImGui::End();
@@ -196,16 +246,16 @@ void application::run() {
 	}
 }
 
-void application::generate_new_maze_button_click(const int& width, const int& height) {
+void application::generate_new_maze_button_click(SDL_Renderer* renderer, const int& width, const int& height, const int& algorithm_to_use) {
 	if (!(active_maze != nullptr)) {
 		//create a new maze object
 		active_maze = new maze(width, height);
 		//generate a new empty maze
 		active_maze->generate_new_empty_maze();
 		//draw the empty maze on screen 
-		active_maze->draw_maze(renderer, false);
+		active_maze->draw_maze(renderer, false, 1);
 		//start a new thread that solves the maze
-		maze_thread = std::thread(&application::maze_thread_function, this, renderer);
+		maze_thread = std::thread(&application::maze_thread_function, this, renderer, algorithm_to_use);
 	}
 	else {
 		std::cout << "ALREADY HAVE A MAZE. PRESS D TO DELETE CURRENT MAZE\n";
@@ -236,7 +286,7 @@ void application::delete_current_maze_button_click() {
 void application::screenshot_maze_button_click(SDL_Renderer* renderer) {
 	if (active_maze != nullptr) {
 		active_maze->allow_generation = false;
-		active_maze->draw_maze(renderer, true); //redraw maze with screenshot flag set
+		active_maze->draw_maze(renderer, true, 1); //redraw maze with screenshot flag set
 		active_maze->allow_generation = true;
 	}
 	else {

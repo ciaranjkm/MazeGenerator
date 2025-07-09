@@ -171,7 +171,6 @@ void maze::solve_maze_rb(SDL_Renderer* renderer){
 
 			//allow main thread to render the maze
 			draw_requested = true;
-			SDL_Delay(16);
 		}
 
 		//allow delay to render on main thread if needed
@@ -231,14 +230,14 @@ void maze::draw_maze_cell(SDL_Renderer* renderer, maze_cell* maze_cell, const in
 	}
 }
 
-void maze::draw_maze(SDL_Renderer* renderer, const bool& screenshot) {
+void maze::draw_maze(SDL_Renderer* renderer, const bool& screenshot, const int& animation_delay) {
 	//create an SDL texture to draw the maze onto
 	SDL_Texture* draw_maze_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, 620, 620);
 	if (draw_maze_texture == nullptr) {
 		std::cerr << "Failed to create texture for maze drawing: " << SDL_GetError() << "\n";
 		return;
 	}
-
+	//TODO NULL RENDERER CHECK
 	SDL_SetRenderTarget(renderer, draw_maze_texture);
 	
 	//draw the background in off-white 
@@ -279,6 +278,9 @@ void maze::draw_maze(SDL_Renderer* renderer, const bool& screenshot) {
 
 	//reset render target to default
 	SDL_SetRenderTarget(renderer, nullptr);
+
+	//delay the animation 
+	SDL_Delay(animation_delay);
 }
 
 //PRIVATE FUNCTIONS

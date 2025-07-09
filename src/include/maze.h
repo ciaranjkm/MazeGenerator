@@ -28,13 +28,16 @@ public:
 	//DRAWING FUNCTIONS
 	void clear_background(SDL_Renderer* renderer, SDL_Color color); //clear the background of the screen to a specific colour
 	void draw_maze_cell(SDL_Renderer* renderer, maze_cell* maze_cell, const int& maze_width, const int& maze_height); //draw a individual maze cell
-	void draw_maze(SDL_Renderer* renderer, const bool& screenshot); //draw the entire maze 
+	void draw_maze(SDL_Renderer* renderer, const bool& screenshot, const int& animation_speed); //draw the entire maze 
 
 	//control bools for multi threading drawing
 	std::atomic_bool draw_requested = false;
 	std::atomic_bool allow_generation = true;
 	std::atomic_bool solved = false;
 	std::atomic_bool stop_thread = false;
+
+	//stores the original cells
+	std::vector<maze_cell> original_maze_cells;
 
 
 private:
@@ -51,8 +54,6 @@ private:
 	//random function
 	int get_random_int(const int& min, const int& max);
 
-	//stores the original cells
-	std::vector<maze_cell> original_maze_cells;
 
 	//stores the visited cells, used to check for completeness of the maze
 	std::vector<maze_cell*> visited_cells;
