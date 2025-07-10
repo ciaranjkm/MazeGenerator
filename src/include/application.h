@@ -20,7 +20,7 @@ public:
 
 	//UI BUTTON FUNCTIONS
 	void generate_new_maze_button_click(SDL_Renderer* renderer, const int& width, const int& height, const int& algorithm_to_use);
-	void delete_current_maze_button_click();
+	void delete_current_maze_button_click(SDL_Renderer* renderer);
 	void screenshot_maze_button_click(SDL_Renderer* renderer);
 
 	//UI CONTAINERS (simplified run())
@@ -33,9 +33,6 @@ public:
 	void maze_thread_function(const int& algorithm_to_use);
 
 private:
-	SDL_Window* window;
-	SDL_Renderer* renderer;
-
 	maze* active_maze;
 	std::thread maze_thread;
 };

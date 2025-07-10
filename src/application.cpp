@@ -4,25 +4,10 @@
 
 //CONSTRUCTOR AND DESTRUCTOR
 application::application() {
-	window = nullptr;
-	renderer = nullptr;
-
 	active_maze = nullptr;
 }
 
 application::~application() {
-	if (renderer != nullptr) {
-		SDL_DestroyRenderer(renderer);
-		renderer = nullptr;
-	}
-	
-	if (window != nullptr) {
-		SDL_DestroyWindow(window);
-		window = nullptr;
-	}
-
-	SDL_Quit();
-
 	if (active_maze != nullptr) {
 		delete active_maze;
 		active_maze = nullptr;
@@ -213,7 +198,7 @@ void application::generate_new_maze_button_click(SDL_Renderer* renderer, const i
 	}
 }
 
-void application::delete_current_maze_button_click() {
+void application::delete_current_maze_button_click(SDL_Renderer* renderer) {
 	if (active_maze != nullptr) {
 		active_maze->stop_thread = true;
 		if (maze_thread.joinable()) {
@@ -277,7 +262,7 @@ void application::generation_control_buttons(SDL_Renderer* renderer, const int& 
 	}
 	ImGui::SameLine();
 	if (ImGui::Button("Delete Current Maze")) {
-		delete_current_maze_button_click();
+		delete_current_maze_button_click(renderer);
 	}
 }
 
