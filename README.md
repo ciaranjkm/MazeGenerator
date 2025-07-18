@@ -1,4 +1,4 @@
-#Simple Maze Generator
+# Simple Maze Generator
 
 Using C++ to create "randomly" generated mazes using different algorithms, and take screenshots of the maze to save and share.
 
